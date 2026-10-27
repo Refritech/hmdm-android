@@ -32,7 +32,9 @@ repositories {
 android {
     compileSdkVersion 34
     defaultConfig {
-        applicationId "com.hmdm.launcher"
+        // Own package ID: the custom build must not look like the official Headwind MDM app
+        // signed by another key, otherwise it is blocked by Google Play Protect
+        applicationId "ao.refriango.mdm"
         //minSdkVersion 16
         // Starting with version 6.33, we use newer version of com.fasterxml.jackson
         // which is only compatible with API 26 (Android 8+).
@@ -41,8 +43,8 @@ android {
         // downgrade the dependency to com.fasterxml.jackson to 2.13.5
         minSdkVersion 26
         targetSdkVersion 34
-        versionCode 15400
-        versionName "6.40"
+        versionCode 15401
+        versionName "6.40.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true

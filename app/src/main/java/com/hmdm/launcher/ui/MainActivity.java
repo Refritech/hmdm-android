@@ -954,7 +954,8 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) {
+        // Kiosk mode needs overlays to draw the kiosk exit button
+        if ((ProUtils.isPro() || ProUtils.kioskModeRequired(this)) && overlayMode == -1 && needRequestOverlay()) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -1254,7 +1255,7 @@ public class MainActivity
     }
 
     private boolean checkAlarmWindow() {
-        if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
+        if ((ProUtils.isPro() || ProUtils.kioskModeRequired(this)) && !Utils.canDrawOverlays(this)) {
             if (SystemUtils.autoSetOverlayPermission(this, getPackageName())) {
                 // Permission auto granted, but we double check
                 if (Utils.canDrawOverlays(this)) {
@@ -1847,7 +1848,12 @@ public class MainActivity
                     // If Headwind MDM itself is set as kiosk app, the kiosk mode is already turned on;
                     // So here we just proceed to drawing the content
                     (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
-                if (ProUtils.getKioskAppIntent(kioskApp, this) != null && startKiosk(kioskApp)) {
+                if (kioskApp.equals(getPackageName())) {
+                    // Headwind MDM itself is the kiosk app: lock its own task and proceed to drawing the content
+                    if (!startKiosk(kioskApp)) {
+                        Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow");
+                    }
+                } else if (ProUtils.getKioskAppIntent(kioskApp, this) != null && startKiosk(kioskApp)) {
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     return;
                 } else {
