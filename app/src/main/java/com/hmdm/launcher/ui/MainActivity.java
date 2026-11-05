@@ -101,7 +101,6 @@ import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
-import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
 import com.hmdm.launcher.receiver.ScreenOffReceiver;
 import com.hmdm.launcher.server.ServerServiceKeeper;
@@ -768,13 +767,9 @@ public class MainActivity
     }
 
     private void startServices() {
-        // Foreground apps checks are not available in a free version: services are the stubs
+        // Foreground apps check (app control when the permissive mode is off)
         if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
-        }
-        if (BuildConfig.USE_ACCESSIBILITY &&
-            preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
-            startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
         }
         startService(new Intent(MainActivity.this, StatusControlService.class));
 

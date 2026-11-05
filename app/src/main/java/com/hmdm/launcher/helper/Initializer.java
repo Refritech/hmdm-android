@@ -19,7 +19,6 @@ import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
-import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.service.PushLongPollingService;
@@ -137,14 +136,6 @@ public class Initializer {
         if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             try {
                 context.startService(new Intent(context, CheckForegroundApplicationService.class));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (BuildConfig.USE_ACCESSIBILITY &&
-            preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
-            try {
-                context.startService(new Intent(context, CheckForegroundAppAccessibilityService.class));
             } catch (Exception e) {
                 e.printStackTrace();
             }

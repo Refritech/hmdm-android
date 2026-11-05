@@ -249,10 +249,6 @@
             </intent-filter>
         </service>
 
-        <!-- Stub -->
-        <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
-                 android:exported="false"/>
-
         <service android:name="org.eclipse.paho.android.service.MqttService"
             android:foregroundServiceType="specialUse|systemExempted"
             android:exported="false">
