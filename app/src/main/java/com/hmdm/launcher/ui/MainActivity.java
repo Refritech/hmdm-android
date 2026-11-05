@@ -979,20 +979,6 @@ public class MainActivity
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            int manageStorageMode = preferences.getInt(Const.PREFERENCES_MANAGE_STORAGE, -1);
-            if (manageStorageMode == -1) {
-                if (checkManageStorage()) {
-                    preferences.
-                            edit().
-                            putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_ON).
-                            commit();
-                } else {
-                    return;
-                }
-            }
-        }
-
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
         // Check the same condition as for usage stats here
         // because accessibility is used as a secondary condition when usage stats is not available

@@ -97,14 +97,8 @@ public class Utils {
                 }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
-                        context.getPackageName(), Manifest.permission.READ_PHONE_NUMBERS) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
-                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                            context.getPackageName(), Manifest.permission.READ_PHONE_NUMBERS, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-                    if (!success) {
-                        return false;
-                    }
-                }
+                // READ_PHONE_NUMBERS is not requested to reduce the risk of blocking by Play Protect:
+                // the phone number is taken from the configuration
                 // This permission is dangerous and causes blocking by Play Protect in some countries.
                 //     In fact, this permission is currently never used by Headwind MDM.
 //                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
@@ -146,16 +140,8 @@ public class Utils {
                         return false;
                     }
                 }
-            } else {
-                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
-                        context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
-                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                            context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-                    if (!success) {
-                        return false;
-                    }
-                }
             }
+            // MANAGE_EXTERNAL_STORAGE is not requested to reduce the risk of blocking by Play Protect
         } catch (NoSuchMethodError e) {
             // This exception is raised on Android 5.1
             e.printStackTrace();
@@ -165,7 +151,7 @@ public class Utils {
             e.printStackTrace();
             return false;
         }
-        Log.i(Const.LOG_TAG, "MANAGE_EXTERNAL_STORAGE automatically granted");
+        Log.i(Const.LOG_TAG, "Storage permission automatically granted");
         return true;
     }
 
