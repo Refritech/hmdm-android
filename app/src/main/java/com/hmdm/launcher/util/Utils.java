@@ -1153,8 +1153,7 @@ public class Utils {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ComponentName deviceAdmin = LegacyUtils.getAdminComponentName(context);
             DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-            packages.replace(" ", "");
-            String[] pkgs = packages.split(",");
+            String[] pkgs = packages.replace(" ", "").split(",");
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     devicePolicyManager.setPackagesSuspended(deviceAdmin, pkgs, lock);

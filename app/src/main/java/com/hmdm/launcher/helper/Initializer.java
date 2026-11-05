@@ -132,7 +132,7 @@ public class Initializer {
         // Not allowed to start service Intent { cmp=com.hmdm.launcher/.service.StatusControlService }: app is in background
         // Let's just ignore these exceptions for now
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
-        // Foreground apps checks are not available in a free version: services are the stubs
+        // Foreground apps check (app control when the permissive mode is off)
         if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             try {
                 context.startService(new Intent(context, CheckForegroundApplicationService.class));

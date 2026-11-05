@@ -22,16 +22,17 @@ package com.hmdm.launcher.pro;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
+import android.app.AppOpsManager;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.location.Location;
 import android.os.Build;
-import android.provider.Settings;
+import android.os.Process;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -39,11 +40,14 @@ import android.view.WindowManager;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.db.DatabaseHelper;
+import com.hmdm.launcher.db.LocationTable;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.LegacyUtils;
 import com.hmdm.launcher.util.Utils;
+import com.hmdm.launcher.worker.LocationUploadWorker;
 
 import java.util.Calendar;
 import java.util.LinkedHashSet;
@@ -55,8 +59,10 @@ import java.util.Set;
  */
 public class ProUtils {
 
+    // Pro features (kiosk mode, app control, status bar lock, location) are implemented in this build,
+    // so the launcher requests the permissions they need (overlays, usage statistics)
     public static boolean isPro() {
-        return false;
+        return true;
     }
 
     // Overlay button used to exit the kiosk mode; only one instance is kept on the screen
@@ -83,16 +89,41 @@ public class ProUtils {
         return true;
     }
 
-    // Pro-version
+    // Usage statistics are used to detect the foreground app which is not allowed by the configuration
     public static boolean checkUsageStatistics(Context context) {
-        // Stub
-        return true;
+        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        if (appOps == null) {
+            return false;
+        }
+        int mode;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            mode = appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.getPackageName());
+        } else {
+            mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.getPackageName());
+        }
+        return mode == AppOpsManager.MODE_ALLOWED;
     }
 
-    // Add a transparent view on top of the status bar which prevents user interaction with the status bar
+    // The device owner disables the status bar directly, so no overlay view is required
+    // The lock is also applied (and removed) on each configuration update, see processConfig()
     public static View preventStatusBarExpansion(Activity activity) {
-        // Stub
+        setStatusBarLocked(activity, true);
         return null;
+    }
+
+    private static void setStatusBarLocked(Context context, boolean locked) {
+        if (!Utils.isDeviceOwner(context)) {
+            return;
+        }
+        try {
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            if (!dpm.setStatusBarDisabled(LegacyUtils.getAdminComponentName(context), locked)) {
+                // Fails if a secure lock screen is set
+                Log.w(Const.LOG_TAG, "Failed to " + (locked ? "lock" : "unlock") + " the status bar");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // Add a transparent view on top of a swipeable area at the right (opens app list on Samsung tablets)
@@ -274,9 +305,7 @@ public class ProUtils {
             }
         }
         if (enableSettings) {
-            ResolveInfo settings = activity.getPackageManager().resolveActivity(
-                    new Intent(Settings.ACTION_SETTINGS), 0);
-            packages.add(settings != null ? settings.activityInfo.packageName : "com.android.settings");
+            packages.add(AppAccessHelper.getSettingsPackage(activity));
         }
 
         try {
@@ -307,12 +336,22 @@ public class ProUtils {
         }
     }
 
+    // Apply the options which must be updated on each configuration change, including turning them off
     public static void processConfig(Context context, ServerConfig config) {
-        // Stub
+        setStatusBarLocked(context, isTrue(config.getLockStatusBar()));
+        AppAccessHelper.updateSuspendedPackages(context, config);
     }
 
+    // Locations are saved locally and uploaded in batches to reduce the server load
     public static void processLocation(Context context, Location location, String provider) {
-        // Stub    
+        try {
+            SQLiteDatabase db = DatabaseHelper.instance(context).getWritableDatabase();
+            LocationTable.insert(db, new LocationTable.Location(location));
+            LocationTable.deleteOldItems(db);
+            LocationUploadWorker.scheduleUpload(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getAppName(Context context) {

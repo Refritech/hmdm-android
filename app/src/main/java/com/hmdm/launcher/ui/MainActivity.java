@@ -949,8 +949,7 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        // Kiosk mode needs overlays to draw the kiosk exit button
-        if ((ProUtils.isPro() || ProUtils.kioskModeRequired(this)) && overlayMode == -1 && needRequestOverlay()) {
+        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -1236,7 +1235,7 @@ public class MainActivity
     }
 
     private boolean checkAlarmWindow() {
-        if ((ProUtils.isPro() || ProUtils.kioskModeRequired(this)) && !Utils.canDrawOverlays(this)) {
+        if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
             if (SystemUtils.autoSetOverlayPermission(this, getPackageName())) {
                 // Permission auto granted, but we double check
                 if (Utils.canDrawOverlays(this)) {
