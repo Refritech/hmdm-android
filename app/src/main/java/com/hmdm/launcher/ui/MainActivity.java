@@ -1093,10 +1093,9 @@ public class MainActivity
                 createLauncherButtons();
                 return;
             }
-            View kioskUnlockButton = null;
-            if (config.isKioskExit()) {     // Should be true by default, but false on older web panel versions
-                kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
-            }
+            // The exit button is always created: older web panel versions send kioskExit=false,
+            // and without the button a device without network can't leave the kiosk mode
+            View kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
             if (kioskUnlockButton != null) {
                 kioskUnlockButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -1223,7 +1222,7 @@ public class MainActivity
             // So we request permissions anyway.
             return true;
         }
-        if (config.isKioskMode() && config.isKioskExit()) {
+        if (config.isKioskMode()) {
             // We need to draw the kiosk exit button
             return true;
         }
